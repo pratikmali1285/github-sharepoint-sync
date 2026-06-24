@@ -12,7 +12,7 @@ SITE_ID = os.environ["SHAREPOINT_SITE_ID"]
 DRIVE_ID = os.environ["SHAREPOINT_DRIVE_ID"]
 
 # Folder inside the library to sync, e.g. "BA-Uploads". Empty string = root.
-SOURCE_FOLDER = os.environ.get("SHAREPOINT_FOLDER", "test")
+SOURCE_FOLDER = os.environ.get("SHAREPOINT_FOLDER", "")
 # Local destination in the repo.
 DEST_DIR = pathlib.Path(os.environ.get("DEST_DIR", "docs"))
 
@@ -33,7 +33,6 @@ def get_token() -> str:
 
 
 def list_children(token: str, item_path: str):
-    """List items in a folder by path relative to the drive root."""
     headers = {"Authorization": f"Bearer {token}"}
     if item_path:
         url = f"{GRAPH}/drives/{DRIVE_ID}/root:/{item_path}:/children"
@@ -42,6 +41,10 @@ def list_children(token: str, item_path: str):
     items = []
     while url:
         r = requests.get(url, headers=headers, timeout=30)
+        if not r.ok:
+            print(f"Request failed: {r.status_code}")
+            print(f"URL: {url}")
+            print(f"Response: {r.text}")
         r.raise_for_status()
         body = r.json()
         items.extend(body.get("value", []))
