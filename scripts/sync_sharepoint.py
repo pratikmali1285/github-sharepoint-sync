@@ -28,7 +28,13 @@ def get_token() -> str:
         "scope": "https://graph.microsoft.com/.default",
     }
     r = requests.post(url, data=data, timeout=30)
-    r.raise_for_status()
+    if not r.ok:
+        print(f"Token request failed with status {r.status_code}")
+        print(f"Response body: {r.text}")
+        print(f"Tenant ID length: {len(TENANT)} (expect 36)")
+        print(f"Client ID length: {len(CLIENT_ID)} (expect 36)")
+        print(f"Client secret length: {len(CLIENT_SECRET)} (varies, usually 40)")
+        r.raise_for_status()
     return r.json()["access_token"]
 
 
